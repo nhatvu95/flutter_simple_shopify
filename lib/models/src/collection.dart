@@ -1,8 +1,8 @@
 import 'package:flutter_simple_shopify/models/src/product.dart';
 
 class Collections {
-  final List<Collection> collectionList;
-  final bool hasNextPage;
+  final List<Collection>? collectionList;
+  final bool? hasNextPage;
 
   Collections({this.collectionList, this.hasNextPage});
 
@@ -21,15 +21,15 @@ class Collections {
 }
 
 class Collection {
-  final String title;
-  final String description;
-  final String descriptionHtml;
-  final String handle;
-  final String id;
-  final String updatedAt;
-  final ShopifyImage image;
-  final Products products;
-  final String cursor;
+  final String? title;
+  final String? description;
+  final String? descriptionHtml;
+  final String? handle;
+  final String? id;
+  final String? updatedAt;
+  final ShopifyImage? image;
+  final Products? products;
+  final String? cursor;
 
   Collection(
       {this.title,

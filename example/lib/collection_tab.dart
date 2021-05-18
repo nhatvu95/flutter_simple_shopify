@@ -91,23 +91,23 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   }
 
   Future<void> _fetchProductsByCollectionId() async{
-    try{
-      ShopifyStore shopifyStore = ShopifyStore.instance;
-      final products = await shopifyStore.getXProductsAfterCursorWithinCollection(
-        widget.collectionId,
-        4,
-        null,
-        sortKey: SortKeyProductCollection.RELEVANCE,
-      );
-      if(mounted){
-        setState(() {
-          this.products = products;
-          _isLoading = false;
-        });
-      }
-    }catch(e){
-      print(e);
-    }
+    // try{
+    //   ShopifyStore shopifyStore = ShopifyStore.instance;
+    //   final products = await shopifyStore.getXProductsAfterCursorWithinCollection(
+    //     widget.collectionId,
+    //     4,
+    //     null,
+    //     sortKey: SortKeyProductCollection.RELEVANCE,
+    //   );
+    //   if(mounted){
+    //     setState(() {
+    //       this.products = products;
+    //       _isLoading = false;
+    //     });
+    //   }
+    // }catch(e){
+    //   print(e);
+    // }
   }
 }
 

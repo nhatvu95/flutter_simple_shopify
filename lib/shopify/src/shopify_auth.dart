@@ -14,7 +14,8 @@ import '../../shopify_config.dart';
 /// ShopifyAuth class handles the authentication.
 class ShopifyAuth with ShopifyError {
   ShopifyAuth._();
-  GraphQLClient get _graphQLClient => ShopifyConfig.graphQLClient;
+
+  GraphQLClient? get _graphQLClient => ShopifyConfig.graphQLClient;
 
   static final ShopifyAuth instance = ShopifyAuth._();
 
@@ -25,23 +26,23 @@ class ShopifyAuth with ShopifyError {
 
   static Map<String, String> _currentCustomerAccessToken = {};
 
-  static Future<String> get currentCustomerAccessToken async {
+  static Future<String?> get currentCustomerAccessToken async {
     if (_currentCustomerAccessToken.containsKey(ShopifyConfig.storeUrl))
       return _currentCustomerAccessToken[ShopifyConfig.storeUrl];
     final _prefs = await SharedPreferences.getInstance();
     if (_prefs.containsKey(ShopifyConfig.storeUrl))
       return _currentCustomerAccessToken[ShopifyConfig.storeUrl] =
-          _prefs.getString(ShopifyConfig.storeUrl);
+          _prefs.getString(ShopifyConfig.storeUrl)!;
     return _currentCustomerAccessToken[ShopifyConfig.storeUrl] =
-        _prefs.getString(_shopifyKey);
+        _prefs.getString(_shopifyKey)!;
   }
 
   /// Tries to create a new user account with the given email address and password.
   Future<ShopifyUser> createUserWithEmailAndPassword({
-    String firstName,
-    String lastName,
-    @required String email,
-    @required String password,
+    String? firstName,
+    String? lastName,
+    @required String? email,
+    @required String? password,
     bool deleteThisPartOfCache = false,
   }) async {
     assert(email != null);
@@ -55,7 +56,7 @@ class ShopifyAuth with ShopifyError {
         'password': password,
       },
     );
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     print(result.exception.toString());
     checkForError(
       result,
@@ -63,17 +64,17 @@ class ShopifyAuth with ShopifyError {
       errorKey: 'customerUserErrors',
     );
     final shopifyUser = ShopifyUser.fromJson(
-        (result?.data['customerCreate'] ?? const {})['customer']);
+        (result?.data!['customerCreate'] ?? const {})['customer']);
     final String customerAccessToken = await _createAccessToken(
-      email,
-      password,
+      email!,
+      password!,
     );
     await _setShopifyUser(
       customerAccessToken,
-      _shopifyUser[ShopifyConfig.storeUrl],
+      _shopifyUser[ShopifyConfig.storeUrl]!,
     );
     if (deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
     return shopifyUser;
   }
@@ -81,96 +82,98 @@ class ShopifyAuth with ShopifyError {
   /// Triggers the Shopify Authentication backend to send a password-reset
   /// email to the given email address, which must correspond to an existing
   /// user of your app.
-  Future<void> sendPasswordResetEmail({@required String email, bool deleteThisPartOfCache = false}) async {
+  Future<void> sendPasswordResetEmail(
+      {@required String? email, bool deleteThisPartOfCache = false}) async {
     assert(email != null);
     final MutationOptions _options = MutationOptions(
-        document: gql(customerRecoverMutation),
-        variables: {'email': email});
-    final QueryResult result = await _graphQLClient.mutate(_options);
+        document: gql(customerRecoverMutation), variables: {'email': email});
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'customerRecover',
       errorKey: 'customerUserErrors',
     );
-    if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+    if (deleteThisPartOfCache) {
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
   /// Tries to sign in a user with the given email address and password.
   Future<ShopifyUser> signInWithEmailAndPassword({
-    @required String email,
-    @required String password,
+    @required String? email,
+    @required String? password,
     bool deleteThisPartOfCache = false,
   }) async {
     assert(email != null);
     assert(password != null);
     final String customerAccessToken = await _createAccessToken(
-      email,
-      password,
+      email!,
+      password!,
     );
     final WatchQueryOptions _getCustomer = WatchQueryOptions(
         document: gql(getCustomerQuery),
         variables: {'customerAccessToken': customerAccessToken});
-    final QueryResult result = await _graphQLClient.query(_getCustomer);
+    final QueryResult result = await _graphQLClient!.query(_getCustomer);
     checkForError(result);
-    final shopifyUser = ShopifyUser.fromJson(result?.data['customer']);
+    final shopifyUser = ShopifyUser.fromJson(result?.data!['customer']);
     await _setShopifyUser(customerAccessToken, shopifyUser);
     if (deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_getCustomer.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_getCustomer.asRequest, data: {});
     }
     return shopifyUser;
   }
 
   /// Helper method for creating the accessToken.
-  Future<String> _createAccessToken(String email, String password, {bool deleteThisPartOfCache = false}) async {
+  Future<String> _createAccessToken(String email, String password,
+      {bool deleteThisPartOfCache = false}) async {
     final MutationOptions _options = MutationOptions(
         document: gql(customerAccessTokenCreate),
         variables: {'email': email, 'password': password});
-    final QueryResult result = await _graphQLClient.mutate(_options);
-    if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
+    if (deleteThisPartOfCache) {
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
-    return _extractAccessToken(result?.data);
+    return _extractAccessToken(result.data!);
   }
 
   /// Helper method for extracting the customerAccessToken from the mutation.
   String _extractAccessToken(Map<String, dynamic> mutationData) {
-    return (((mutationData ?? const {})['customerAccessTokenCreate'] ?? const {})['customerAccessToken'] ?? const {})
-    ['accessToken'];
+    return (((mutationData ?? const {})['customerAccessTokenCreate'] ??
+            const {})['customerAccessToken'] ??
+        const {})['accessToken'];
   }
 
   /// Signs out the current user and clears it from the disk cache.
-  Future<void> signOutCurrentUser({bool deleteThisPartOfCache = false}) async {
+  Future<QueryResult> signOutCurrentUser({bool deleteThisPartOfCache = false}) async {
     final MutationOptions _options = MutationOptions(
         document: gql(accessTokenDeleteMutation),
         variables: {'customerAccessToken': await currentCustomerAccessToken});
     await _setShopifyUser(null, null);
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult? result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'customerAccessTokenDelete',
       errorKey: 'userErrors',
     );
-    if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+    if (deleteThisPartOfCache) {
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
-    return result;
+    return result!;
   }
 
   /// Returns the currently signed-in [ShopifyUser] or [null] if there is none.
-  Future<ShopifyUser> currentUser({bool deleteThisPartOfCache = false}) async {
+  Future<ShopifyUser?> currentUser({bool deleteThisPartOfCache = false}) async {
     final WatchQueryOptions _getCustomer = WatchQueryOptions(
         document: gql(getCustomerQuery),
         variables: {'customerAccessToken': await currentCustomerAccessToken});
     if (deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_getCustomer.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_getCustomer.asRequest, data: {});
     }
     if (_shopifyUser.containsKey(ShopifyConfig.storeUrl)) {
       return _shopifyUser[ShopifyConfig.storeUrl];
       //TODO look into shared prefs (@adam)
     } else if (await currentCustomerAccessToken != null) {
-      final QueryResult result = (await _graphQLClient.query(_getCustomer));
+      final QueryResult result = (await _graphQLClient!.query(_getCustomer));
       checkForError(result);
       ShopifyUser user = ShopifyUser.fromJson(
           (result?.data ?? const {})['customer'] ?? const {});
@@ -181,8 +184,8 @@ class ShopifyAuth with ShopifyError {
   }
 
   Future<void> _setShopifyUser(
-    String sharedPrefsToken,
-    ShopifyUser shopifyUser,
+    String? sharedPrefsToken,
+    ShopifyUser? shopifyUser,
   ) async {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     if (sharedPrefsToken == null) {
@@ -191,7 +194,7 @@ class ShopifyAuth with ShopifyError {
       _prefs.remove(_shopifyKey);
       _prefs.remove(ShopifyConfig.storeUrl);
     } else {
-      _shopifyUser[ShopifyConfig.storeUrl] = shopifyUser;
+      _shopifyUser[ShopifyConfig.storeUrl] = shopifyUser!;
       _currentCustomerAccessToken[ShopifyConfig.storeUrl] = sharedPrefsToken;
       _prefs.setString(ShopifyConfig.storeUrl, sharedPrefsToken);
     }

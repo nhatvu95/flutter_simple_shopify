@@ -2,12 +2,12 @@ name: flutter_simple_shopify
 description: A new Flutter package which provides help in creating a mobile app of a shopify store.
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  graphql: ^4.0.1
+  graphql: ^5.0.0-nullsafety.5
   shared_preferences: ^2.0.5
   intl: ^0.17.0
 

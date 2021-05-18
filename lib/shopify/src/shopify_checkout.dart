@@ -27,7 +27,7 @@ class ShopifyCheckout with ShopifyError{
   ShopifyCheckout._();
   static final ShopifyCheckout instance = ShopifyCheckout._();
 
-  GraphQLClient get _graphQLClient => ShopifyConfig.graphQLClient;
+  GraphQLClient? get _graphQLClient => ShopifyConfig.graphQLClient;
 
   /// Returns a [Checkout] object.
   ///
@@ -37,19 +37,19 @@ class ShopifyCheckout with ShopifyError{
     WatchQueryOptions(document: gql(getCheckoutInfoAboutShipping), variables: {
       'id': checkoutId,
     });
-    QueryResult result = await _graphQLClient.query(_optionsRequireShipping);
+    QueryResult result = await _graphQLClient!.query(_optionsRequireShipping);
     print(result?.data);
     final WatchQueryOptions _options =
     WatchQueryOptions(document: gql(_requiresShipping(result) == true ? getCheckoutInfo : getCheckoutInfoWithoutShipping), variables: {
       'id': checkoutId,
     });
-    final QueryResult _queryResult = (await _graphQLClient.query(_options));
+    final QueryResult _queryResult = (await _graphQLClient!.query(_options));
     checkForError(_queryResult);
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
     return Checkout.fromJson(
-        _queryResult?.data['node']);
+        _queryResult?.data!['node']);
   }
 
   bool _requiresShipping(QueryResult result){
@@ -59,9 +59,9 @@ class ShopifyCheckout with ShopifyError{
   /// Updates the attributes of a [Checkout]
   Future<void> updateAttributes(
     String checkoutId, {
-    bool allowPartialAddresses,
-    Map<String, String> customAttributes,
-    String note,
+    bool? allowPartialAddresses,
+    Map<String, String>? customAttributes,
+    String? note,
     bool deleteThisPartOfCache = false,
   }) async {
     final MutationOptions _options = MutationOptions(
@@ -83,21 +83,21 @@ class ShopifyCheckout with ShopifyError{
         },
       },
     );
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutAttributesUpdateV2',
       errorKey: 'checkoutUserErrors',
     );
     if (deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
   /// Returns all [Order] in a List of Orders.
   ///
   /// Returns a List of Orders from the Customer with the [customerAccessToken].
-  Future<List<Order>> getAllOrders(String customerAccessToken,
+  Future<List<Order>?> getAllOrders(String customerAccessToken,
       { SortKeyOrder sortKey = SortKeyOrder.PROCESSED_AT, bool reverse = true, bool deleteThisPartOfCache = false}) async {
       final QueryOptions _options = WatchQueryOptions(
           document: gql(getAllOrdersQuery),
@@ -107,11 +107,11 @@ class ShopifyCheckout with ShopifyError{
             'reverse': reverse
           }
       );
-      final QueryResult result = await ShopifyConfig.graphQLClient.query(_options);
+      final QueryResult result = await ShopifyConfig.graphQLClient!.query(_options);
       checkForError(result);
       Orders orders = Orders.fromJson(((((result?.data ?? const {}))['customer'] ?? const {})['orders'] ?? const {}));
       if(deleteThisPartOfCache) {
-        _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+        _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
       }
     return orders.orderList;
   }
@@ -127,14 +127,14 @@ class ShopifyCheckout with ShopifyError{
       'checkoutId': checkoutId,
       'checkoutLineItems': checkoutLineItems,
     });
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutLineItemsReplace',
       errorKey: 'userErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -150,14 +150,15 @@ class ShopifyCheckout with ShopifyError{
       document: gql(checkoutShippingAddressUpdateMutation),
       variables: variables,
     );
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutShippingAddressUpdateV2',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
+      
     }
   }
 
@@ -183,14 +184,14 @@ class ShopifyCheckout with ShopifyError{
           'checkoutId': checkoutId,
           'customerAccessToken': customerAccessToken
         });
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutCustomerAssociateV2',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -199,14 +200,14 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
         document: gql(checkoutCustomerDisassociateMutation),
         variables: {'id': checkoutId});
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutCustomerDisassociateV2',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -216,14 +217,14 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
         document: gql(checkoutDiscountCodeApplyMutation),
         variables: {'checkoutId': checkoutId, 'discountCode': discountCode});
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutDiscountCodeApplyV2',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -232,14 +233,14 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
         document: gql(checkoutDiscountCodeRemoveMutation),
         variables: {'checkoutId': checkoutId});
-    QueryResult result = await _graphQLClient.mutate(_options);
+    QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutDiscountCodeRemove',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -249,14 +250,14 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
         document: gql(checkoutGiftCardsAppendMutation),
         variables: {'checkoutId': checkoutId, 'giftCardCodes': giftCardCodes});
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutGiftCardsAppend',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -267,12 +268,12 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
       document: gql(createCheckoutMutation),
     );
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(result);
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
-    return ((result?.data['checkoutCreate'] ??
+    return ((result.data!['checkoutCreate'] ??
         const {})['checkout'] ??
         const {})['id'];
 
@@ -287,14 +288,14 @@ class ShopifyCheckout with ShopifyError{
           'appliedGiftCards': appliedGiftCardId,
           'checkoutId': checkoutId
         });
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutGiftCardRemoveV2',
       errorKey: 'checkoutUserErrors',
     );
     if(deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 
@@ -305,7 +306,7 @@ class ShopifyCheckout with ShopifyError{
     final MutationOptions _options = MutationOptions(
         document: gql(checkoutCompleteFreeMutation),
         variables: {'checkoutId': checkoutId});
-    final QueryResult result = await _graphQLClient.mutate(_options);
+    final QueryResult result = await _graphQLClient!.mutate(_options);
     checkForError(
       result,
       key: 'checkoutCompleteFree',
@@ -313,7 +314,7 @@ class ShopifyCheckout with ShopifyError{
     );
 
     if (deleteThisPartOfCache) {
-      _graphQLClient.cache.writeQuery(_options.asRequest, data: null);
+      _graphQLClient!.cache.writeQuery(_options.asRequest, data: {});
     }
   }
 }
