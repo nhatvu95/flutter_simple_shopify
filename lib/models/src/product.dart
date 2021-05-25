@@ -40,6 +40,7 @@ class Product {
   final List<Option>? option;
   final String? vendor;
   final List<Metafield>? metafields;
+  final String? productId;
 
   const Product(
       {this.collectionList,
@@ -60,7 +61,8 @@ class Product {
       this.images,
       this.option,
       this.vendor,
-      this.metafields});
+      this.metafields,
+      this.productId});
 
   static Product fromJson(Map<String, dynamic> json) {
     return Product(
@@ -82,6 +84,7 @@ class Product {
         cursor: json['cursor'],
         option: _getOptionList((json['node'] ?? const {})),
         vendor: (json['node'] ?? const {})['vendor'],
+        productId: (json['product_id'] ?? const {})['product_id'],
         metafields: _getMetafieldList(
             (json['node'] ?? const {})['metafields'] ?? const {}));
   }
