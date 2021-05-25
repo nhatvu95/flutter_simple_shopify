@@ -40,7 +40,7 @@ class Product {
   final List<Option>? option;
   final String? vendor;
   final List<Metafield>? metafields;
-  final String? productId;
+
 
   const Product(
       {this.collectionList,
@@ -61,8 +61,7 @@ class Product {
       this.images,
       this.option,
       this.vendor,
-      this.metafields,
-      this.productId});
+      this.metafields});
 
   static Product fromJson(Map<String, dynamic> json) {
     return Product(
@@ -84,7 +83,6 @@ class Product {
         cursor: json['cursor'],
         option: _getOptionList((json['node'] ?? const {})),
         vendor: (json['node'] ?? const {})['vendor'],
-        productId: (json['product_id'] ?? const {})['product_id'],
         metafields: _getMetafieldList(
             (json['node'] ?? const {})['metafields'] ?? const {}));
   }
@@ -193,6 +191,7 @@ class ProductVariant {
   final PriceV2? unitPrice;
   final UnitPriceMeasurement? unitPriceMeasurement;
   final List<SelectedOption>? selectedOptions;
+  final String? productId;
 
   const ProductVariant(
       {this.price,
@@ -208,7 +207,7 @@ class ProductVariant {
       this.quantityAvailable,
       this.unitPrice,
       this.unitPriceMeasurement,
-      this.selectedOptions});
+      this.selectedOptions,this.productId});
 
   static ProductVariant fromJson(Map<String, dynamic> json) {
     return ProductVariant(
@@ -225,6 +224,7 @@ class ProductVariant {
       sku: (json['node'] ?? const {})['sku'],
       requiresShipping: (json['node'] ?? const {})['requiresShipping'],
       id: (json['node'] ?? const {})['id'],
+      productId: (json['node'] ?? const {})['product_id'],
       quantityAvailable: (json['node'] ?? const {})['quantityAvailable'],
       unitPrice:
           PriceV2.fromJson((json['node'] ?? const {})['unitPrice'] ?? const {}),
